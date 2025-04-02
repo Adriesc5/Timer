@@ -3,7 +3,8 @@ from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QTimeEdit,
     QMessageBox, QHBoxLayout
 )
-from PyQt6.QtCore import QTime, QTimer
+from PyQt6.QtCore import QTime, QTimer, Qt, QDateTime
+from PyQt6.QtGui import QFont
 
 HORNO_LIST = ["HB-1", "HB-2", "HB-3", "HB-4"]
 
@@ -13,19 +14,49 @@ class DataEntryScreen(QWidget):
         self.add_job_callback = add_job_callback
         self.get_jobs_callback = get_jobs_callback
         layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(40, 20, 40, 20)
 
+        # Título
+        title = QLabel("Ingreso de Jobs")
+        font = QFont()
+        font.setPointSize(20)
+        font.setBold(True)
+        title.setFont(font)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("color: #112D4E;")
+        layout.addWidget(title)
+
+        # Hora actual
+        self.clock_label = QLabel()
+        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.clock_label.setStyleSheet("font-size: 16px; color: #3F3F3F;")
+        layout.addWidget(self.clock_label)
+
+        self.clock_timer = QTimer()
+        self.clock_timer.timeout.connect(self.update_clock)
+        self.clock_timer.start(1000)
+        self.update_clock()
+
+        # Inputs
         self.dropdown = QComboBox()
         self.dropdown.addItems(HORNO_LIST)
+        self.dropdown.setStyleSheet("font-size: 16px;")
+
         self.job_input = QLineEdit()
         self.job_input.setPlaceholderText("Número de job")
         self.job_input.returnPressed.connect(self.start_job)
+        self.job_input.setStyleSheet("font-size: 16px;")
 
         self.time_input = QTimeEdit()
         self.time_input.setDisplayFormat("HH:mm")
+        self.time_input.setStyleSheet("font-size: 16px;")
 
         self.start_btn = QPushButton("Start")
+        self.start_btn.setStyleSheet("background-color: #3F72AF; color: white; font-size: 16px;")
         self.start_btn.clicked.connect(self.start_job)
 
+        # Form layout
         layout.addWidget(QLabel("Horno:"))
         layout.addWidget(self.dropdown)
         layout.addWidget(QLabel("Job:"))
@@ -48,6 +79,10 @@ class DataEntryScreen(QWidget):
         self.sync_timer.timeout.connect(self.refresh_jobs_display)
         self.sync_timer.start(2000)
 
+    def update_clock(self):
+        now = QDateTime.currentDateTime().toString("hh:mm:ss AP")
+        self.clock_label.setText(f"Hora actual del sistema: {now}")
+
     def refresh_jobs_display(self):
         while self.jobs_list.count():
             item = self.jobs_list.takeAt(0)
@@ -59,8 +94,10 @@ class DataEntryScreen(QWidget):
         for (horno, job) in jobs:
             row = QHBoxLayout()
             label = QLabel(f"{horno} - {job}")
+            label.setStyleSheet("font-size: 16px;")
+
             stop_btn = QPushButton("Stop")
-            stop_btn.setStyleSheet("background-color: darkred; color: white;")
+            stop_btn.setStyleSheet("background-color: darkred; color: white; font-size: 14px;")
             stop_btn.clicked.connect(lambda _, h=horno, j=job: self.stop_job_direct(h, j))
             row.addWidget(label)
             row.addStretch()
@@ -80,12 +117,10 @@ class DataEntryScreen(QWidget):
 
         current_jobs = self.get_jobs_callback()
 
-        # Validación duplicado exacto (horno, job)
         if (horno, job) in current_jobs:
             QMessageBox.warning(self, "Duplicado", f"El trabajo '{job}' ya está registrado en {horno}.")
             return
 
-        # Validación límite por horno
         count = sum(1 for (h, _) in current_jobs if h == horno)
         if count >= 2:
             QMessageBox.warning(self, "Límite alcanzado", f"Solo se permiten 2 trabajos por horno: {horno}")
