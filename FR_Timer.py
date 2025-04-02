@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer, QDateTime, QDate, QTime
 from PyQt6.QtGui import QPixmap
+from pathlib import Path
+base_path = Path(__file__).parent
 
 MAX_JOBS_TOTAL = 8
 
@@ -30,7 +32,11 @@ class TimerDisplayScreen(QWidget):
         header_layout.setColumnStretch(2, 1)
 
         logo_left = QLabel()
-        logo_left.setPixmap(QPixmap("TMCDL-removebg-preview.png").scaledToHeight(60))
+        logo_left.setPixmap(
+            QPixmap(str(base_path / "TMCDL-removebg-preview.png")).scaled(
+                200, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+            )
+        )
         logo_left.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         title = QLabel("EXPOSURE TIME")
@@ -42,7 +48,12 @@ class TimerDisplayScreen(QWidget):
         title.setStyleSheet("color:#112D4E;")
 
         logo_right = QLabel()
-        logo_right.setPixmap(QPixmap("VTC-GTC_logo.png").scaledToHeight(80))
+        #logo_right.setPixmap(QPixmap(str(base_path / "VTC-GTC_logo.png")).scaledToHeight(80))
+        logo_right.setPixmap(
+            QPixmap(str(base_path / "VTC-GTC_logo.png")).scaled(
+                200, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+            )
+        )
         logo_right.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
         header_layout.addWidget(logo_left, 0, 0)
