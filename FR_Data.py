@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QTimeEdit,
     QMessageBox, QHBoxLayout
 )
-from PyQt6.QtCore import QTime, QTimer, Qt, QDateTime
+from PyQt6.QtCore import QTime, QTimer, Qt, QDateTime, QDate
 from PyQt6.QtGui import QFont
 
 HORNO_LIST = ["HB-1", "HB-2", "HB-3", "HB-4"]
@@ -17,7 +17,7 @@ class DataEntryScreen(QWidget):
         layout.setSpacing(12)
         layout.setContentsMargins(40, 20, 40, 20)
 
-        # Título
+        # Title
         title = QLabel("Jobs Input")
         font = QFont()
         font.setPointSize(20)
@@ -26,17 +26,6 @@ class DataEntryScreen(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color: #112D4E;")
         layout.addWidget(title)
-
-        # Hora actual
-        self.clock_label = QLabel()
-        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.clock_label.setStyleSheet("font-size: 16px; color: #3F3F3F;")
-        layout.addWidget(self.clock_label)
-
-        self.clock_timer = QTimer()
-        self.clock_timer.timeout.connect(self.update_clock)
-        self.clock_timer.start(1000)
-        self.update_clock()
 
         # Inputs
         self.dropdown = QComboBox()
@@ -49,19 +38,30 @@ class DataEntryScreen(QWidget):
         self.job_input.setStyleSheet("font-size: 16px;")
 
         self.time_input = QTimeEdit()
+        self.time_input.setTime(QTime.currentTime())
         self.time_input.setDisplayFormat("HH:mm")
         self.time_input.setStyleSheet("font-size: 16px;")
+        self.time_input.setMinimumTime(QTime(0, 0))
+
+        self.clock_label = QLabel()
+        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.clock_label.setStyleSheet("font-size: 16px; color: #3F3F3F;")
+        layout.addWidget(self.clock_label)
+
+        self.clock_timer = QTimer()
+        self.clock_timer.timeout.connect(self.update_clock)
+        self.clock_timer.start(1000)
+        self.update_clock()
 
         self.start_btn = QPushButton("Start")
         self.start_btn.setStyleSheet("background-color: #3F72AF; color: white; font-size: 16px;")
         self.start_btn.clicked.connect(self.start_job)
 
-        # Form layout
         layout.addWidget(QLabel("Oven:"))
         layout.addWidget(self.dropdown)
         layout.addWidget(QLabel("Job:"))
         layout.addWidget(self.job_input)
-        layout.addWidget(QLabel("Oven exit time:"))
+        layout.addWidget(QLabel("Oven Exit Time:"))
         layout.addWidget(self.time_input)
 
         button_row = QHBoxLayout()
@@ -69,8 +69,16 @@ class DataEntryScreen(QWidget):
         layout.addLayout(button_row)
 
         layout.addWidget(QLabel("Active Jobs:"))
+        from PyQt6.QtWidgets import QScrollArea
+        self.jobs_list_container = QWidget()
         self.jobs_list = QVBoxLayout()
-        layout.addLayout(self.jobs_list)
+        self.jobs_list_container.setLayout(self.jobs_list)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(self.jobs_list_container)
+        scroll.setFixedHeight(240)
+        layout.addWidget(scroll)
 
         self.setLayout(layout)
         self.refresh_jobs_display()
@@ -80,8 +88,15 @@ class DataEntryScreen(QWidget):
         self.sync_timer.start(2000)
 
     def update_clock(self):
-        now = QDateTime.currentDateTime().toString("hh:mm:ss AP")
-        self.clock_label.setText(f"Time: {now}")
+        now = QDateTime.currentDateTime()
+        self.clock_label.setText(f"Time: {now.toString('HH:mm:ss')}")
+
+        salida = self.time_input.time()
+        salida_dt = QDateTime(QDate.currentDate(), salida)
+        if salida_dt > now:
+            self.clock_label.setStyleSheet("font-size: 16px; color: red;")
+        else:
+            self.clock_label.setStyleSheet("font-size: 16px; color: #3F3F3F;")
 
     def refresh_jobs_display(self):
         while self.jobs_list.count():
@@ -90,7 +105,8 @@ class DataEntryScreen(QWidget):
             if widget:
                 widget.deleteLater()
 
-        jobs = self.get_jobs_callback()
+        jobs = list(self.get_jobs_callback())
+        jobs.sort()  # oldest first based on key order
         for (horno, job) in jobs:
             row = QHBoxLayout()
             label = QLabel(f"{horno} - {job}")
@@ -115,6 +131,12 @@ class DataEntryScreen(QWidget):
             QMessageBox.warning(self, "Error", "Invalid Job")
             return
 
+        now = QDateTime.currentDateTime()
+        salida_dt = QDateTime(QDate.currentDate(), salida)
+        if salida_dt > now:
+            QMessageBox.warning(self, "Error", "The exit time cannot be later than the current system time.")
+            return
+
         current_jobs = self.get_jobs_callback()
 
         if (horno, job) in current_jobs:
@@ -128,7 +150,8 @@ class DataEntryScreen(QWidget):
 
         self.add_job_callback(horno, job, salida)
         self.job_input.clear()
-        self.time_input.setTime(QTime(0, 0))
+        self.time_input.setTime(QTime.currentTime())
+        self.job_input.setFocus()
         self.refresh_jobs_display()
 
     def stop_job_direct(self, horno, job):

@@ -9,10 +9,11 @@ from PyQt6.QtGui import QPixmap
 MAX_JOBS_TOTAL = 8
 
 class TimerDisplayScreen(QWidget):
-    def __init__(self):
+    def __init__(self, show_login_or_data_callback):
         super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.showFullScreen()
+        self.show_login_or_data_callback = show_login_or_data_callback
 
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -39,8 +40,6 @@ class TimerDisplayScreen(QWidget):
         title.setFont(title_font)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("color:#112D4E;")
-        
-        
 
         logo_right = QLabel()
         logo_right.setPixmap(QPixmap("VTC-GTC_logo.png").scaledToHeight(80))
@@ -55,7 +54,7 @@ class TimerDisplayScreen(QWidget):
         # Botón cerrar
         close_btn_layout = QHBoxLayout()
         close_btn_layout.setContentsMargins(0, 0, 10, 0)
-        close_btn = QPushButton("✕")
+        close_btn = QPushButton("\u2715")
         close_btn.setFixedSize(32, 32)
         close_btn.setStyleSheet("font-size: 16px; background-color: transparent; color: #112D4E;")
         close_btn.clicked.connect(self.close)
@@ -69,7 +68,6 @@ class TimerDisplayScreen(QWidget):
         self.jobs_layout.setContentsMargins(50, 20, 50, 20)
         self.layout.addLayout(self.jobs_layout)
 
-        # Empujar todo hacia arriba si no hay jobs
         self.layout.addStretch()
 
         self.jobs = {}  # {(horno, job): (end_time, widget, label)}
@@ -94,7 +92,7 @@ class TimerDisplayScreen(QWidget):
             return
 
         if len(self.jobs) >= MAX_JOBS_TOTAL:
-            QMessageBox.warning(self, "Maximum reached", "There is already 8 Jobs registered.")
+            QMessageBox.warning(self, "Maximum reached", "There are already 8 jobs on screen.")
             return
 
         now = QDateTime.currentDateTime()
@@ -103,7 +101,7 @@ class TimerDisplayScreen(QWidget):
         remaining_secs = (12 * 3600) - diff_secs
 
         if remaining_secs <= 0:
-            QMessageBox.warning(self, "Time Expired", f"El trabajo '{job}' has exceeded the 12-hour limit.")
+            QMessageBox.warning(self, "Time expired", f"The job '{job}' has exceeded the 12-hour limit since its departure.")
             return
 
         end_time = now.addSecs(remaining_secs)
@@ -130,8 +128,12 @@ class TimerDisplayScreen(QWidget):
         for (horno, job), (end_time, widget, label) in list(self.jobs.items()):
             remaining = now.secsTo(end_time)
             if remaining <= 0:
-                label.setText(f"{job} COMPLETED")
-                label.setStyleSheet("background-color: red; color: white;")
+                exceeded = -remaining
+                hrs = exceeded // 3600
+                mins = (exceeded % 3600) // 60
+                secs = exceeded % 60
+                label.setText(f"{job} - Time exceeded by: {hrs:02d}:{mins:02d}:{secs:02d}")
+                label.setStyleSheet("background-color: #8B0000; color: white;")
                 continue
             hrs = remaining // 3600
             mins = (remaining % 3600) // 60
