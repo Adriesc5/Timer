@@ -33,14 +33,14 @@ class MainApp(QWidget):
 
         if not finish:
             if not isinstance(salida, QTime):
-                QMessageBox.warning(self, "Error", "La hora de salida no es válida.")
+                QMessageBox.warning(self, "Error", "Invalid exit time.")
                 return
             if key in self.timer_screen.jobs:
-                QMessageBox.warning(self, "Duplicado", f"El trabajo '{job}' ya está registrado en {horno}.")
+                QMessageBox.warning(self, "Duplicate", f"Job '{job}' is already registered in {horno}.")
                 return
             count = sum(1 for (h, _) in self.timer_screen.jobs if h == horno)
             if count >= MAX_JOBS_PER_HORNO:
-                QMessageBox.warning(self, "Error", f"Máximo de {MAX_JOBS_PER_HORNO} trabajos permitidos para {horno}.")
+                QMessageBox.warning(self, "Error", f"Maximum of {MAX_JOBS_PER_HORNO} jobs permited per {horno}.")
                 return
 
         self.timer_screen.add_or_update_job(horno, job, salida, finish)

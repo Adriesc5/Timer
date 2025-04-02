@@ -18,7 +18,7 @@ class DataEntryScreen(QWidget):
         layout.setContentsMargins(40, 20, 40, 20)
 
         # Título
-        title = QLabel("Ingreso de Jobs")
+        title = QLabel("Jobs Input")
         font = QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -44,7 +44,7 @@ class DataEntryScreen(QWidget):
         self.dropdown.setStyleSheet("font-size: 16px;")
 
         self.job_input = QLineEdit()
-        self.job_input.setPlaceholderText("Número de job")
+        self.job_input.setPlaceholderText("Job #")
         self.job_input.returnPressed.connect(self.start_job)
         self.job_input.setStyleSheet("font-size: 16px;")
 
@@ -57,18 +57,18 @@ class DataEntryScreen(QWidget):
         self.start_btn.clicked.connect(self.start_job)
 
         # Form layout
-        layout.addWidget(QLabel("Horno:"))
+        layout.addWidget(QLabel("Oven:"))
         layout.addWidget(self.dropdown)
         layout.addWidget(QLabel("Job:"))
         layout.addWidget(self.job_input)
-        layout.addWidget(QLabel("Hora salida horno:"))
+        layout.addWidget(QLabel("Oven exit time:"))
         layout.addWidget(self.time_input)
 
         button_row = QHBoxLayout()
         button_row.addWidget(self.start_btn)
         layout.addLayout(button_row)
 
-        layout.addWidget(QLabel("Trabajos activos:"))
+        layout.addWidget(QLabel("Active Jobs:"))
         self.jobs_list = QVBoxLayout()
         layout.addLayout(self.jobs_list)
 
@@ -81,7 +81,7 @@ class DataEntryScreen(QWidget):
 
     def update_clock(self):
         now = QDateTime.currentDateTime().toString("hh:mm:ss AP")
-        self.clock_label.setText(f"Hora actual del sistema: {now}")
+        self.clock_label.setText(f"Time: {now}")
 
     def refresh_jobs_display(self):
         while self.jobs_list.count():
@@ -112,18 +112,18 @@ class DataEntryScreen(QWidget):
         salida = self.time_input.time()
 
         if not job:
-            QMessageBox.warning(self, "Error", "Job inválido")
+            QMessageBox.warning(self, "Error", "Invalid Job")
             return
 
         current_jobs = self.get_jobs_callback()
 
         if (horno, job) in current_jobs:
-            QMessageBox.warning(self, "Duplicado", f"El trabajo '{job}' ya está registrado en {horno}.")
+            QMessageBox.warning(self, "Duplicate", f"Job '{job}' is already registered in {horno}.")
             return
 
         count = sum(1 for (h, _) in current_jobs if h == horno)
         if count >= 2:
-            QMessageBox.warning(self, "Límite alcanzado", f"Solo se permiten 2 trabajos por horno: {horno}")
+            QMessageBox.warning(self, "Limit Reached", f"Only 2 jobs are allowed per oven: {horno}")
             return
 
         self.add_job_callback(horno, job, salida)

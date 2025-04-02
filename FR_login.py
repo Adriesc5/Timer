@@ -21,7 +21,7 @@ class LoginScreen(QWidget):
         layout.addWidget(logo)
 
         # Título estilizado
-        self.label = QLabel("Inicio de Sesión")
+        self.label = QLabel("User Login")
         font = QFont()
         font.setPointSize(24)
         font.setBold(True)
@@ -33,15 +33,15 @@ class LoginScreen(QWidget):
 
         # Inputs de login
         self.user_input = QLineEdit()
-        self.user_input.setPlaceholderText("Usuario")
+        self.user_input.setPlaceholderText("User")
         self.user_input.setFixedHeight(40)
 
         self.pass_input = QLineEdit()
-        self.pass_input.setPlaceholderText("Contraseña")
+        self.pass_input.setPlaceholderText("Password")
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.pass_input.setFixedHeight(40)
 
-        self.login_btn = QPushButton("Ingresar")
+        self.login_btn = QPushButton("Login")
         self.login_btn.setFixedHeight(40)
         self.login_btn.setStyleSheet("background-color: #3F72AF; color: white; font-size: 18px;")
         self.login_btn.clicked.connect(self.handle_login)
@@ -58,4 +58,4 @@ class LoginScreen(QWidget):
         if self.user_input.text() == LOGIN_USER and self.pass_input.text() == LOGIN_PASS:
             self.switch_to_data()
         else:
-            QMessageBox.warning(self, "Error", "Credenciales incorrectas")
+            QMessageBox.warning(self, "Error", "Incorrect credentials")

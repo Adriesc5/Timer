@@ -90,11 +90,11 @@ class TimerDisplayScreen(QWidget):
             return
 
         if salida is None or not isinstance(salida, QTime):
-            QMessageBox.warning(self, "Error", "Hora de salida inválida.")
+            QMessageBox.warning(self, "Error", "Invalid exit time.")
             return
 
         if len(self.jobs) >= MAX_JOBS_TOTAL:
-            QMessageBox.warning(self, "Máximo alcanzado", "Ya hay 8 trabajos en pantalla.")
+            QMessageBox.warning(self, "Maximum reached", "There is already 8 Jobs registered.")
             return
 
         now = QDateTime.currentDateTime()
@@ -103,7 +103,7 @@ class TimerDisplayScreen(QWidget):
         remaining_secs = (12 * 3600) - diff_secs
 
         if remaining_secs <= 0:
-            QMessageBox.warning(self, "Tiempo agotado", f"El trabajo '{job}' ya superó las 12 horas desde su salida.")
+            QMessageBox.warning(self, "Time Expired", f"El trabajo '{job}' has exceeded the 12-hour limit.")
             return
 
         end_time = now.addSecs(remaining_secs)
@@ -130,7 +130,7 @@ class TimerDisplayScreen(QWidget):
         for (horno, job), (end_time, widget, label) in list(self.jobs.items()):
             remaining = now.secsTo(end_time)
             if remaining <= 0:
-                label.setText(f"{job} FINALIZADO")
+                label.setText(f"{job} COMPLETED")
                 label.setStyleSheet("background-color: red; color: white;")
                 continue
             hrs = remaining // 3600
