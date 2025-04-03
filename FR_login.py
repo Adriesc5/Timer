@@ -5,8 +5,11 @@ from pathlib import Path
 
 base_path = Path(__file__).parent
 
-LOGIN_USER = "Tanking"
-LOGIN_PASS = "Tan123!"
+VALID_CREDENTIALS = {
+    "Tanking": "Tan123!",
+    "Beto": "Betorocks",
+    "LMV":"Adri57"
+}
 
 class LoginScreen(QWidget):
     def __init__(self, switch_to_data):
@@ -73,7 +76,10 @@ class LoginScreen(QWidget):
         self.setLayout(outer_layout)
 
     def handle_login(self):
-        if self.user_input.text() == LOGIN_USER and self.pass_input.text() == LOGIN_PASS:
+        user = self.user_input.text()
+        password = self.pass_input.text()
+
+        if VALID_CREDENTIALS.get(user) == password:
             self.switch_to_data()
         else:
             QMessageBox.warning(self, "Error", "Incorrect credentials")
