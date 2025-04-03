@@ -33,7 +33,7 @@ class TimerDisplayScreen(QWidget):
 
         logo_left = QLabel()
         logo_left.setPixmap(
-            QPixmap(str(base_path / "TMCDL-removebg-preview.png")).scaled(
+            QPixmap(str(base_path / "TMC.png")).scaled(
                 200, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
             )
         )
@@ -108,6 +108,9 @@ class TimerDisplayScreen(QWidget):
 
         now = QDateTime.currentDateTime()
         salida_dt = QDateTime(QDate.currentDate(), salida)
+        if salida_dt > now:
+            salida_dt = salida_dt.addDays(-1)
+
         diff_secs = salida_dt.secsTo(now)
         remaining_secs = (12 * 3600) - diff_secs
 
@@ -150,9 +153,11 @@ class TimerDisplayScreen(QWidget):
             mins = (remaining % 3600) // 60
             secs = remaining % 60
             label.setText(f"{job} - {hrs:02d}:{mins:02d}:{secs:02d}")
-            if hrs < 4:
+            if hrs < 2:
                 label.setStyleSheet("background-color: red; color: white;")
-            elif hrs <= 12:
+            elif hrs <= 6:
                 label.setStyleSheet("background-color: yellow; color: #112D4E;")
+            elif hrs <= 12:
+                label.setStyleSheet("color: #112D4E;")    
             else:
                 label.setStyleSheet("")

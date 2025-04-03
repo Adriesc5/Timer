@@ -133,9 +133,17 @@ class DataEntryScreen(QWidget):
 
         now = QDateTime.currentDateTime()
         salida_dt = QDateTime(QDate.currentDate(), salida)
+
+        # Si la salida es mayor que ahora, asumimos que fue ayer
         if salida_dt > now:
-            QMessageBox.warning(self, "Error", "The exit time cannot be later than the current system time.")
+            salida_dt = salida_dt.addDays(-1)
+
+        # Validar que no se excedan las 12 horas desde la hora de salida
+        elapsed_secs = salida_dt.secsTo(now)
+        if elapsed_secs > 12 * 3600:
+            QMessageBox.warning(self, "Error", "The exit time exceeds the 12-hour job limit.")
             return
+
 
         current_jobs = self.get_jobs_callback()
 

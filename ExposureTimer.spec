@@ -7,8 +7,9 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('TMCDL-removebg-preview.png', '.'),
+        ('TMC.png', '.'),
         ('VTC-GTC_logo.png', '.'),
+        ('ETLogo.ico', '.')
     ],
     hiddenimports=[],
     hookspath=[],
@@ -22,14 +23,16 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    [],
-    exclude_binaries=True,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     name='ExposureTimer',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
+    console=False,  # <--- OCULTA LA CONSOLA
+    icon='ETLogo.ico',  
 )
 coll = COLLECT(
     exe,

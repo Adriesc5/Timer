@@ -23,7 +23,7 @@ class LoginScreen(QWidget):
 
         logo = QLabel()
         logo.setPixmap(
-            QPixmap(str(base_path / "TMCDL-removebg-preview.png")).scaled(
+            QPixmap(str(base_path / "TMC.png")).scaled(
                 200, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
             )
         )
