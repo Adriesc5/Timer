@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Editor settings
+.vscode/
+.idea/
+
+# PyInstaller folders
+build/
+dist/
+*.spec
+
+# Ejecutables
+*.exe
+*.dll
+
+# Logs / Misc
+*.log
+*.tmp
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# OneDrive sync issues
+*.lnk

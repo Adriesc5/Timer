@@ -72,7 +72,7 @@ class DataEntryScreen(QWidget):
         scroll.setFixedHeight(240)
         layout.addWidget(scroll)
 
-        version_label = QLabel("Version 1.0.3")
+        version_label = QLabel("Version 1.0.5")
         version_label.setStyleSheet("font-size: 12px; color: gray;")
         version_row = QHBoxLayout()
         version_row.addWidget(version_label)

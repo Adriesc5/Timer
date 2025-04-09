@@ -6,7 +6,7 @@ from pathlib import Path
 
 base_path = Path(__file__).parent
 
-VALID_CREDENTIALS = {
+VALID_C = {
     "Tanking": ("Tan123!", "E2X"),
     "Meny":("Bleach89","E2X"),
     "Beto": ("Betorocks", "E2X"),
@@ -81,8 +81,8 @@ class LoginScreen(QWidget):
         user = self.user_input.text().strip()
         password = self.pass_input.text().strip()
 
-        if user in VALID_CREDENTIALS and VALID_CREDENTIALS[user][0] == password:
-            unit = VALID_CREDENTIALS[user][1]
+        if user in VALID_C and VALID_C[user][0] == password:
+            unit = VALID_C[user][1]
             self.switch_to_data(unit)  # pasa la unidad al callback
         else:
             QMessageBox.warning(self, "Error", "Incorrect credentials")
