@@ -1,4 +1,3 @@
-# FR_Data.py
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox,
     QTimeEdit, QMessageBox, QHBoxLayout, QScrollArea
@@ -6,18 +5,23 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QTime, QTimer, Qt, QDateTime, QDate
 from PyQt6.QtGui import QFont
 
-HORNO_LIST = ["HB-1", "HB-2", "HB-3", "HB-4"]
+UNIT_HORNOS = {
+    "E2X": ["HB-1", "HB-2", "HB-3", "HB-4"],
+    "MPU": ["VPD"]
+}
 
 class DataEntryScreen(QWidget):
-    def __init__(self, add_job_callback, get_jobs_callback):
+    def __init__(self, add_job_callback, get_jobs_callback, unit):
         super().__init__()
         self.add_job_callback = add_job_callback
         self.get_jobs_callback = get_jobs_callback
+        self.unit = unit
+
         layout = QVBoxLayout()
         layout.setSpacing(12)
         layout.setContentsMargins(40, 20, 40, 20)
 
-        title = QLabel("Jobs Input")
+        title = QLabel(f"Jobs Input - {self.unit}")
         font = QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -27,7 +31,7 @@ class DataEntryScreen(QWidget):
         layout.addWidget(title)
 
         self.dropdown = QComboBox()
-        self.dropdown.addItems(HORNO_LIST)
+        self.dropdown.addItems(UNIT_HORNOS.get(self.unit, []))
 
         self.job_input = QLineEdit()
         self.job_input.setPlaceholderText("Job #")
@@ -67,8 +71,8 @@ class DataEntryScreen(QWidget):
         scroll.setWidget(self.jobs_list_container)
         scroll.setFixedHeight(240)
         layout.addWidget(scroll)
-        
-        version_label= QLabel("Version 1.0.3")
+
+        version_label = QLabel("Version 1.0.3")
         version_label.setStyleSheet("font-size: 12px; color: gray;")
         version_row = QHBoxLayout()
         version_row.addWidget(version_label)
@@ -98,22 +102,17 @@ class DataEntryScreen(QWidget):
         for (horno, job), data in jobs:
             row = QHBoxLayout()
             label = QLabel(f"{horno} - {job}")
-            #Stop button
             stop_btn = QPushButton("Stop")
             stop_btn.setStyleSheet("background-color: darkred; color: white; font-size: 14px;")
             stop_btn.clicked.connect(lambda _, h=horno, j=job: self.stop_job_direct(h, j))
-            #Pause button
             pause_btn = QPushButton("Pause" if not data.get("paused") else "Resume")
             pause_btn.setStyleSheet("background-color: #f0ad4e; color: white; font-size: 14px;")
             pause_btn.clicked.connect(lambda _, h=horno, j=job: self.pause_job_direct(h, j))
-
-
 
             row.addWidget(label)
             row.addStretch()
             row.addWidget(stop_btn)
             row.addWidget(pause_btn)
-
 
             container = QWidget()
             container.setLayout(row)

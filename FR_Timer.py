@@ -5,11 +5,23 @@ from PyQt6.QtGui import QPixmap
 from pathlib import Path
 base_path = Path(__file__).parent
 
+UNIT_CONFIG = {
+    "E2X": {
+        "exposure_hours": 12
+    },
+    "MPU": {
+        "exposure_hours": 8
+    }
+}
+
 MAX_JOBS_TOTAL = 8
 
 class TimerDisplayScreen(QWidget):
-    def __init__(self):
+    def __init__(self, unit):
         super().__init__()
+        self.unit = unit
+        self.exposure_hours = UNIT_CONFIG[unit]["exposure_hours"]
+
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.showFullScreen()
 
@@ -37,7 +49,6 @@ class TimerDisplayScreen(QWidget):
         title.setStyleSheet("font-size: 32px; font-weight: bold; color:#112D4E;")
 
         logo_right = QLabel()
-        #logo_right.setPixmap(QPixmap("VTC-GTC_logo.png").scaledToHeight(80))
         logo_right.setPixmap(
             QPixmap(str(base_path / "VTC.png")).scaled(
                 200, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
@@ -51,7 +62,7 @@ class TimerDisplayScreen(QWidget):
         header_container.setLayout(header_layout)
         self.layout.addWidget(header_container)
 
-        close_btn = QPushButton("✕")
+        close_btn = QPushButton("\u2715")
         close_btn.setFixedSize(32, 32)
         close_btn.setStyleSheet("font-size: 16px; background-color: transparent; color: #112D4E;")
         close_btn.clicked.connect(self.close)
@@ -90,10 +101,11 @@ class TimerDisplayScreen(QWidget):
             salida_dt = salida_dt.addDays(-1)
 
         diff_secs = salida_dt.secsTo(now)
-        remaining_secs = (12 * 3600) - diff_secs
+        total_secs = self.exposure_hours * 3600
+        remaining_secs = total_secs - diff_secs
 
         if remaining_secs <= 0:
-            QMessageBox.warning(self, "Time expired", f"The job '{job}' has exceeded the 12-hour limit.")
+            QMessageBox.warning(self, "Time expired", f"The job '{job}' has exceeded the limit.")
             return
 
         end_time = now.addSecs(remaining_secs)
@@ -113,7 +125,8 @@ class TimerDisplayScreen(QWidget):
             "widget": job_row,
             "label": timer_label,
             "paused": False,
-            "paused_at": None
+            "paused_at": None,
+            "total_secs": total_secs
         }
         self.update_timers()
 
@@ -148,12 +161,13 @@ class TimerDisplayScreen(QWidget):
                 label.setText(f"{job} - Time exceeded by: {hrs:02}:{mins:02}:{secs:02}")
                 label.setStyleSheet("background-color: #8B0000; color: white; font-size: 48px;")
             else:
+                percent = remaining / data["total_secs"]
                 hrs, rem = divmod(remaining, 3600)
                 mins, secs = divmod(rem, 60)
                 label.setText(f"{job} - {hrs:02}:{mins:02}:{secs:02}")
-                if hrs < 4:
+                if percent <= 0.1666:
                     label.setStyleSheet("background-color: red; color: white; font-size: 48px;")
-                elif hrs <= 12:
+                elif percent <= 0.5:
                     label.setStyleSheet("background-color: yellow; color: #112D4E; font-size: 48px;")
                 else:
                     label.setStyleSheet("font-size: 48px;")

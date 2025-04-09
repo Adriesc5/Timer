@@ -8,7 +8,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('TMC.png', '.'),
-        ('VTC-GTC_logo.png', '.'),
+        ('VTC.png', '.'),
         ('ETLogo.ico', '.')
     ],
     hiddenimports=[],

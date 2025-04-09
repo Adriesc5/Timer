@@ -1,3 +1,4 @@
+# FR_login.py
 from PyQt6.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
 from PyQt6.QtGui import QFont, QPixmap
 from PyQt6.QtCore import Qt
@@ -6,9 +7,10 @@ from pathlib import Path
 base_path = Path(__file__).parent
 
 VALID_CREDENTIALS = {
-    "Tanking": "Tan123!",
-    "Beto": "Betorocks",
-    "LMV":"Adri57"
+    "Tanking": ("Tan123!", "E2X"),
+    "Meny":("Bleach89","E2X"),
+    "Beto": ("Betorocks", "E2X"),
+    "LMV": ("Adri57", "MPU")
 }
 
 class LoginScreen(QWidget):
@@ -76,10 +78,11 @@ class LoginScreen(QWidget):
         self.setLayout(outer_layout)
 
     def handle_login(self):
-        user = self.user_input.text()
-        password = self.pass_input.text()
+        user = self.user_input.text().strip()
+        password = self.pass_input.text().strip()
 
-        if VALID_CREDENTIALS.get(user) == password:
-            self.switch_to_data()
+        if user in VALID_CREDENTIALS and VALID_CREDENTIALS[user][0] == password:
+            unit = VALID_CREDENTIALS[user][1]
+            self.switch_to_data(unit)  # pasa la unidad al callback
         else:
             QMessageBox.warning(self, "Error", "Incorrect credentials")
