@@ -10,7 +10,8 @@ VALID_C = {
     "Tanking": ("Tan123!", "E2X"),
     "Meny":("Bleach89","E2X"),
     "Beto": ("Betorocks", "E2X"),
-    "LMV": ("Adri57", "MPU")
+    "LMV": ("Adri57", "MPU"),
+    "JavierR":("")
 }
 
 class LoginScreen(QWidget):
