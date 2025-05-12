@@ -11,7 +11,7 @@ class MainApp(QWidget):
     def __init__(self):
         super().__init__()
         self.stacked = QStackedWidget()
-        self.unit = None
+        self.unit = "E2X"
         self.timer_screen = None
         self.login_screen = LoginScreen(self.to_data_entry)
         self.data_screen = None
@@ -23,24 +23,17 @@ class MainApp(QWidget):
 
     def to_data_entry(self, unit):
         self.unit = unit
-        if self.timer_screen:
-            self.timer_screen.close()
-
         self.timer_screen = TimerDisplayScreen(self.unit)
-        self.timer_screen.show()
-
         self.data_screen = DataEntryScreen(
             self.handle_job, lambda: self.timer_screen.jobs, self.unit
         )
-
-        if self.stacked.count() > 1:
-            self.stacked.removeWidget(self.stacked.widget(1))
         self.stacked.addWidget(self.data_screen)
         self.stacked.setCurrentWidget(self.data_screen)
+        self.timer_screen.set_data_screen(self.data_screen)
 
         QTimer.singleShot(10 * 60 * 1000, lambda: self.stacked.setCurrentWidget(self.login_screen))
 
-    def handle_job(self, horno, job, salida, finish=False, pause=False):
+    def handle_job(self, horno, job, salida, finish=False, pause=False, exposure_hours=None):
         job = job.strip().upper()
         key = (horno, job)
 
@@ -66,7 +59,7 @@ class MainApp(QWidget):
             QMessageBox.warning(self, "Error", f"Maximum of {max_jobs} jobs allowed for {horno}.")
             return
 
-        self.timer_screen.add_or_update_job(horno, job, salida)
+        self.timer_screen.add_or_update_job(horno, job, salida, exposure_override=exposure_hours)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

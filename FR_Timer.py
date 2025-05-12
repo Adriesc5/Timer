@@ -3,25 +3,13 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayo
 from PyQt6.QtCore import Qt, QTimer, QDateTime, QDate, QTime
 from PyQt6.QtGui import QPixmap
 from pathlib import Path
+
 base_path = Path(__file__).parent
-
-UNIT_CONFIG = {
-    "E2X": {
-        "exposure_hours": 12
-    },
-    "MPU": {
-        "exposure_hours": 8
-    }
-}
-
-MAX_JOBS_TOTAL = 8
 
 class TimerDisplayScreen(QWidget):
     def __init__(self, unit):
         super().__init__()
         self.unit = unit
-        self.exposure_hours = UNIT_CONFIG[unit]["exposure_hours"]
-
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.showFullScreen()
 
@@ -46,7 +34,7 @@ class TimerDisplayScreen(QWidget):
 
         title = QLabel("EXPOSURE TIME")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 32px; font-weight: bold; color:#112D4E;")
+        title.setStyleSheet("font-size: 24px; font-weight: bold; color:#112D4E;")
 
         logo_right = QLabel()
         logo_right.setPixmap(
@@ -62,7 +50,7 @@ class TimerDisplayScreen(QWidget):
         header_container.setLayout(header_layout)
         self.layout.addWidget(header_container)
 
-        close_btn = QPushButton("\u2715")
+        close_btn = QPushButton("✕")
         close_btn.setFixedSize(32, 32)
         close_btn.setStyleSheet("font-size: 16px; background-color: transparent; color: #112D4E;")
         close_btn.clicked.connect(self.close)
@@ -83,7 +71,10 @@ class TimerDisplayScreen(QWidget):
         self.timer.timeout.connect(self.update_timers)
         self.timer.start(1000)
 
-    def add_or_update_job(self, horno, job, salida, finish=False):
+    def set_data_screen(self, screen):
+        self.data_screen = screen
+
+    def add_or_update_job(self, horno, job, salida, finish=False, exposure_override=None):
         job = job.strip().upper()
         key = (horno, job)
 
@@ -93,7 +84,7 @@ class TimerDisplayScreen(QWidget):
                 self.jobs_layout.removeWidget(widget)
                 widget.deleteLater()
                 del self.jobs[key]
-            return
+                return
 
         now = QDateTime.currentDateTime()
         salida_dt = QDateTime(QDate.currentDate(), salida)
@@ -101,12 +92,11 @@ class TimerDisplayScreen(QWidget):
             salida_dt = salida_dt.addDays(-1)
 
         diff_secs = salida_dt.secsTo(now)
-        total_secs = self.exposure_hours * 3600
-        remaining_secs = total_secs - diff_secs
+        exposure_seconds = (exposure_override or 12) * 3600
+        remaining_secs = exposure_seconds - diff_secs
 
         if remaining_secs <= 0:
-            QMessageBox.warning(self, "Time expired", f"The job '{job}' has exceeded the limit.")
-            return
+            remaining_secs = 0
 
         end_time = now.addSecs(remaining_secs)
 
@@ -116,17 +106,16 @@ class TimerDisplayScreen(QWidget):
 
         timer_label = QLabel()
         timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        timer_label.setStyleSheet("font-size: 48px; font-weight: bold;")
         row_layout.addWidget(timer_label)
-
         self.jobs_layout.addWidget(job_row)
+
         self.jobs[key] = {
             "end_time": end_time,
             "widget": job_row,
             "label": timer_label,
             "paused": False,
             "paused_at": None,
-            "total_secs": total_secs
+            "exposure": exposure_seconds
         }
         self.update_timers()
 
@@ -146,28 +135,43 @@ class TimerDisplayScreen(QWidget):
 
     def update_timers(self):
         now = QDateTime.currentDateTime()
+        num_jobs = len(self.jobs)
+        font_sizes = {
+            1: 210,
+            2: 180,
+            3: 120,
+            4: 96,
+            5: 77,
+            6: 64,
+            7: 55,
+            8: 48
+        }
+        font_size = font_sizes.get(num_jobs, 48)
+
         for (horno, job), data in list(self.jobs.items()):
             label = data["label"]
             if data["paused"]:
                 label.setText(f"{job} - Paused")
-                label.setStyleSheet("background-color: gray; color: white; font-size: 48px;")
+                label.setStyleSheet(f"background-color: gray; color: white; font-size: {font_size}px;")
                 continue
 
             remaining = now.secsTo(data["end_time"])
+            exposure = data["exposure"]
+
             if remaining <= 0:
                 over = -remaining
                 hrs, rem = divmod(over, 3600)
                 mins, secs = divmod(rem, 60)
                 label.setText(f"{job} - Time exceeded by: {hrs:02}:{mins:02}:{secs:02}")
-                label.setStyleSheet("background-color: #8B0000; color: white; font-size: 48px;")
+                label.setStyleSheet(f"background-color: #8B0000; color: white; font-size: {font_size}px;")
             else:
-                percent = remaining / data["total_secs"]
                 hrs, rem = divmod(remaining, 3600)
                 mins, secs = divmod(rem, 60)
-                label.setText(f"{job} - {hrs:02}:{mins:02}:{secs:02}")
-                if percent <= 0.1666:
-                    label.setStyleSheet("background-color: red; color: white; font-size: 48px;")
+                percent = remaining / exposure
+                color = ""
+                if percent <= 1/6:
+                    color = "red"
                 elif percent <= 0.5:
-                    label.setStyleSheet("background-color: yellow; color: #112D4E; font-size: 48px;")
-                else:
-                    label.setStyleSheet("font-size: 48px;")
+                    color = "yellow"
+                label.setText(f"{job} - {hrs:02}:{mins:02}:{secs:02}")
+                label.setStyleSheet(f"background-color: {color}; color: #112D4E; font-size: {font_size}px;" if color else f"color: #112D4E; font-size: {font_size}px;")

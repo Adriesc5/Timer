@@ -1,27 +1,27 @@
+# FR_Data.py
 from PyQt6.QtWidgets import (
     QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox,
     QTimeEdit, QMessageBox, QHBoxLayout, QScrollArea
 )
 from PyQt6.QtCore import QTime, QTimer, Qt, QDateTime, QDate
 from PyQt6.QtGui import QFont
+import re
 
-UNIT_HORNOS = {
-    "E2X": ["HB-1", "HB-2", "HB-3", "HB-4"],
-    "MPU": ["VPD"]
-}
+HORNO_LIST_E2X = ["HB-1", "HB-2", "HB-3", "HB-4"]
+HORNO_LIST_MPU = ["VPD"]
 
 class DataEntryScreen(QWidget):
     def __init__(self, add_job_callback, get_jobs_callback, unit):
         super().__init__()
+        self.unit = unit
+        self.selected_kvbil = "<350KVBIL"
         self.add_job_callback = add_job_callback
         self.get_jobs_callback = get_jobs_callback
-        self.unit = unit
-
         layout = QVBoxLayout()
         layout.setSpacing(12)
         layout.setContentsMargins(40, 20, 40, 20)
 
-        title = QLabel(f"Jobs Input - {self.unit}")
+        title = QLabel("Jobs Input")
         font = QFont()
         font.setPointSize(20)
         font.setBold(True)
@@ -31,7 +31,8 @@ class DataEntryScreen(QWidget):
         layout.addWidget(title)
 
         self.dropdown = QComboBox()
-        self.dropdown.addItems(UNIT_HORNOS.get(self.unit, []))
+        horno_list = HORNO_LIST_E2X if unit == "E2X" else HORNO_LIST_MPU
+        self.dropdown.addItems(horno_list)
 
         self.job_input = QLineEdit()
         self.job_input.setPlaceholderText("Job #")
@@ -59,6 +60,23 @@ class DataEntryScreen(QWidget):
         layout.addWidget(self.job_input)
         layout.addWidget(QLabel("Oven Exit Time:"))
         layout.addWidget(self.time_input)
+
+        if self.unit == "MPU":
+            btn_row = QHBoxLayout()
+            self.low_btn = QPushButton("<350KVBIL")
+            self.high_btn = QPushButton(">350KVBIL")
+
+            self.low_btn.setCheckable(True)
+            self.high_btn.setCheckable(True)
+            self.low_btn.setChecked(True)
+
+            self.low_btn.clicked.connect(lambda: self.select_kvbil("<350KVBIL"))
+            self.high_btn.clicked.connect(lambda: self.select_kvbil(">350KVBIL"))
+
+            btn_row.addWidget(self.low_btn)
+            btn_row.addWidget(self.high_btn)
+            layout.addLayout(btn_row)
+
         layout.addWidget(self.start_btn)
 
         layout.addWidget(QLabel("Active Jobs:"))
@@ -72,7 +90,7 @@ class DataEntryScreen(QWidget):
         scroll.setFixedHeight(240)
         layout.addWidget(scroll)
 
-        version_label = QLabel("Version 1.0.5")
+        version_label = QLabel("Version 1.0.5.7")
         version_label.setStyleSheet("font-size: 12px; color: gray;")
         version_row = QHBoxLayout()
         version_row.addWidget(version_label)
@@ -85,6 +103,11 @@ class DataEntryScreen(QWidget):
         self.sync_timer = QTimer()
         self.sync_timer.timeout.connect(self.refresh_jobs_display)
         self.sync_timer.start(2000)
+
+    def select_kvbil(self, value):
+        self.selected_kvbil = value
+        self.low_btn.setChecked(value == "<350KVBIL")
+        self.high_btn.setChecked(value == ">350KVBIL")
 
     def update_clock(self):
         now = QDateTime.currentDateTime()
@@ -121,6 +144,11 @@ class DataEntryScreen(QWidget):
     def start_job(self):
         horno = self.dropdown.currentText()
         job = self.job_input.text().strip().upper()
+
+        if not re.match(r"^[A-Z]{2}\d{3}[A-Z]$", job):
+            QMessageBox.warning(self, "Invalid Job Format", "Job format must be two letters, three digits, and one letter (e.g., AB123C).")
+            return
+
         salida = self.time_input.time()
 
         if not job:
@@ -132,11 +160,15 @@ class DataEntryScreen(QWidget):
         if salida_dt > now:
             salida_dt = salida_dt.addDays(-1)
 
-        if salida_dt.secsTo(now) > 12 * 3600:
-            QMessageBox.warning(self, "Error", "More than 12 hours have passed since this exit time.")
+        if salida_dt.secsTo(now) > 18 * 3600:
+            QMessageBox.warning(self, "Error", "More than 18 hours have passed since this exit time.")
             return
 
-        self.add_job_callback(horno, job, salida)
+        exposure_hours = 12
+        if self.unit == "MPU":
+            exposure_hours = 12 if self.selected_kvbil == "<350KVBIL" else 18
+
+        self.add_job_callback(horno, job, salida, exposure_hours=exposure_hours)
         self.job_input.clear()
         self.time_input.setTime(QTime.currentTime())
         self.refresh_jobs_display()
@@ -147,4 +179,4 @@ class DataEntryScreen(QWidget):
 
     def pause_job_direct(self, horno, job):
         self.add_job_callback(horno, job, None, pause=True)
-        QTimer.singleShot(200, self.refresh_jobs_display)
+        QTimer.singleShot(200, self.refresh_jobs_display())
