@@ -1,5 +1,5 @@
 # FR_Timer.py
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QMessageBox
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, QSizePolicy
 from PyQt6.QtCore import Qt, QTimer, QDateTime, QDate, QTime
 from PyQt6.QtGui import QPixmap
 from pathlib import Path
@@ -50,7 +50,7 @@ class TimerDisplayScreen(QWidget):
         header_container.setLayout(header_layout)
         self.layout.addWidget(header_container)
 
-        close_btn = QPushButton("✕")
+        close_btn = QPushButton("\u2715")
         close_btn.setFixedSize(32, 32)
         close_btn.setStyleSheet("font-size: 16px; background-color: transparent; color: #112D4E;")
         close_btn.clicked.connect(self.close)
@@ -84,6 +84,7 @@ class TimerDisplayScreen(QWidget):
                 self.jobs_layout.removeWidget(widget)
                 widget.deleteLater()
                 del self.jobs[key]
+                self.relayout_jobs()
                 return
 
         now = QDateTime.currentDateTime()
@@ -94,7 +95,6 @@ class TimerDisplayScreen(QWidget):
         diff_secs = salida_dt.secsTo(now)
         exposure_seconds = (exposure_override or 12) * 3600
         remaining_secs = exposure_seconds - diff_secs
-
         if remaining_secs <= 0:
             remaining_secs = 0
 
@@ -117,7 +117,28 @@ class TimerDisplayScreen(QWidget):
             "paused_at": None,
             "exposure": exposure_seconds
         }
-        self.update_timers()
+        self.relayout_jobs()
+
+    def relayout_jobs(self):
+        num_jobs = len(self.jobs)
+        if num_jobs == 0:
+            return
+
+        total_height = self.height()
+        available_height = total_height - 120 - 32 - 100
+        row_height = available_height // num_jobs
+        font_size = max(min(int(row_height * 0.4), 210), 24)
+
+        for data in self.jobs.values():
+            label = data["label"]
+            widget = data["widget"]
+            data["font_size"] = font_size
+
+            widget.setFixedHeight(row_height)
+            label.setFixedHeight(row_height)
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setWordWrap(True)
+            label.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
     def toggle_pause(self, horno, job):
         key = (horno, job)
@@ -135,21 +156,10 @@ class TimerDisplayScreen(QWidget):
 
     def update_timers(self):
         now = QDateTime.currentDateTime()
-        num_jobs = len(self.jobs)
-        font_sizes = {
-            1: 210,
-            2: 180,
-            3: 120,
-            4: 96,
-            5: 77,
-            6: 64,
-            7: 55,
-            8: 48
-        }
-        font_size = font_sizes.get(num_jobs, 48)
-
         for (horno, job), data in list(self.jobs.items()):
             label = data["label"]
+            font_size = data.get("font_size", 48)
+
             if data["paused"]:
                 label.setText(f"{job} - Paused")
                 label.setStyleSheet(f"background-color: gray; color: white; font-size: {font_size}px;")
@@ -174,4 +184,7 @@ class TimerDisplayScreen(QWidget):
                 elif percent <= 0.5:
                     color = "yellow"
                 label.setText(f"{job} - {hrs:02}:{mins:02}:{secs:02}")
-                label.setStyleSheet(f"background-color: {color}; color: #112D4E; font-size: {font_size}px;" if color else f"color: #112D4E; font-size: {font_size}px;")
+                label.setStyleSheet(
+                    f"background-color: {color}; color: #112D4E; font-size: {font_size}px;"
+                    if color else f"color: #112D4E; font-size: {font_size}px;"
+                )
