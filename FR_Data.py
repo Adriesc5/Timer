@@ -6,6 +6,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QTime, QTimer, Qt, QDateTime, QDate
 from PyQt6.QtGui import QFont
 import re
+from webhook_trigger import send_alert
+from config import WEBHOOK_URL
 
 HORNO_LIST_E2X = ["HB-1", "HB-2", "HB-3", "HB-4"]
 HORNO_LIST_MPU = ["VPD"]
@@ -174,9 +176,15 @@ class DataEntryScreen(QWidget):
         self.refresh_jobs_display()
 
     def stop_job_direct(self, horno, job):
+        jobs = self.get_jobs_callback()
+        data = jobs.get((horno, job))
+        if data:
+            start_time = data["end_time"].addSecs(-data["exposure"])
+            remaining = QDateTime.currentDateTime().secsTo(data["end_time"])
+        send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL,tipo="registro",unidad=self.unit)
         self.add_job_callback(horno, job, None, finish=True)
         self.refresh_jobs_display()
 
-    def pause_job_direct(self, horno, job):
+    def pause_job_direct(self, horno, job): 
         self.add_job_callback(horno, job, None, pause=True)
         QTimer.singleShot(200, self.refresh_jobs_display())

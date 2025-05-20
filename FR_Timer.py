@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayo
 from PyQt6.QtCore import Qt, QTimer, QDateTime, QDate, QTime
 from PyQt6.QtGui import QPixmap
 from pathlib import Path
+from webhook_trigger import send_alert
+from config import WEBHOOK_URL
 
 base_path = Path(__file__).parent
 
@@ -80,6 +82,11 @@ class TimerDisplayScreen(QWidget):
 
         if finish:
             if key in self.jobs:
+                job_data = self.jobs[key]
+                start_time = job_data["end_time"].addSecs(-job_data["exposure"])
+                remaining = QDateTime.currentDateTime().secsTo(job_data["end_time"])
+                send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL, tipo="registro")
+
                 widget = self.jobs[key]["widget"]
                 self.jobs_layout.removeWidget(widget)
                 widget.deleteLater()
@@ -115,7 +122,9 @@ class TimerDisplayScreen(QWidget):
             "label": timer_label,
             "paused": False,
             "paused_at": None,
-            "exposure": exposure_seconds
+            "exposure": exposure_seconds,
+            "alert_sent": False,
+            "stopped": False
         }
         self.relayout_jobs()
 
@@ -181,6 +190,10 @@ class TimerDisplayScreen(QWidget):
                 color = ""
                 if percent <= 1/6:
                     color = "red"
+                    if not data["alert_sent"]:
+                        start_time = data["end_time"].addSecs(-data["exposure"])
+                        send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL, tipo="advertencia",unidad=self.unit)
+                        data["alert_sent"] = True
                 elif percent <= 0.5:
                     color = "yellow"
                 label.setText(f"{job} - {hrs:02}:{mins:02}:{secs:02}")

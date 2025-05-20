@@ -6,14 +6,8 @@ from pathlib import Path
 
 base_path = Path(__file__).parent
 
-VALID_C = {
-    "Tanking": ("Tan123!", "E2X"),
-    "Meny":("Bleach89","E2X"),
-    "Beto": ("Betorocks", "E2X"),
-    "LMV": ("Adri57", "MPU"),
-    "JavierR":(""),
-    "1":("1","E2X")
-}
+from config import VALID_C
+
 
 class LoginScreen(QWidget):
     def __init__(self, switch_to_data):
