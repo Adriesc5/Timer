@@ -36,7 +36,7 @@ class TimerDisplayScreen(QWidget):
 
         title = QLabel("EXPOSURE TIME")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 24px; font-weight: bold; color:#112D4E;")
+        title.setStyleSheet("font-size: 48px; font-weight: bold; color:#112D4E;")
 
         logo_right = QLabel()
         logo_right.setPixmap(

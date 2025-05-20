@@ -23,15 +23,21 @@ class MainApp(QWidget):
 
     def to_data_entry(self, unit):
         self.unit = unit
-        self.timer_screen = TimerDisplayScreen(self.unit)
-        self.data_screen = DataEntryScreen(
-            self.handle_job, lambda: self.timer_screen.jobs, self.unit
-        )
-        self.stacked.addWidget(self.data_screen)
+
+        if not self.timer_screen:
+            self.timer_screen = TimerDisplayScreen(self.unit)
+
+        if not self.data_screen:
+            self.data_screen = DataEntryScreen(
+                self.handle_job, lambda: self.timer_screen.jobs, self.unit
+            )
+            self.timer_screen.set_data_screen(self.data_screen)
+            self.stacked.addWidget(self.data_screen)
+
         self.stacked.setCurrentWidget(self.data_screen)
-        self.timer_screen.set_data_screen(self.data_screen)
 
         QTimer.singleShot(10 * 60 * 1000, lambda: self.stacked.setCurrentWidget(self.login_screen))
+
 
     def handle_job(self, horno, job, salida, finish=False, pause=False, exposure_hours=None):
         job = job.strip().upper()
