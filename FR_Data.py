@@ -181,7 +181,16 @@ class DataEntryScreen(QWidget):
         if data:
             start_time = data["end_time"].addSecs(-data["exposure"])
             remaining = QDateTime.currentDateTime().secsTo(data["end_time"])
-        send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL,tipo="registro",unidad=self.unit)
+            actual_time = QDateTime.currentDateTime().toPyDateTime()
+            start_time = data["end_time"].addSecs(-data["exposure"]).toPyDateTime()
+            exposure_seconds = (actual_time - start_time).total_seconds()
+            exposure_hours = round(exposure_seconds / 3600, 2)
+
+            send_alert(
+                horno, job, start_time, exposure_seconds, WEBHOOK_URL,
+                tipo="registro", unidad=self.unit, actual=actual_time,
+                horas_expuestas=exposure_hours
+            )
         self.add_job_callback(horno, job, None, finish=True)
         self.refresh_jobs_display()
 
