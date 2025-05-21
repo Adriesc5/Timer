@@ -39,12 +39,12 @@ class MainApp(QWidget):
         QTimer.singleShot(10 * 60 * 1000, lambda: self.stacked.setCurrentWidget(self.login_screen))
 
 
-    def handle_job(self, horno, job, salida, finish=False, pause=False, exposure_hours=None):
+    def handle_job(self, horno, job, salida, finish=False, pause=False, exposure_hours=None, skip_registration=False):
         job = job.strip().upper()
         key = (horno, job)
 
         if finish:
-            self.timer_screen.add_or_update_job(horno, job, None, finish=True)
+            self.timer_screen.add_or_update_job(horno, job, None, finish=True, skip_registration=skip_registration)
             return
 
         if pause:

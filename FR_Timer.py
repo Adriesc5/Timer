@@ -76,23 +76,24 @@ class TimerDisplayScreen(QWidget):
     def set_data_screen(self, screen):
         self.data_screen = screen
 
-    def add_or_update_job(self, horno, job, salida, finish=False, exposure_override=None):
+    def add_or_update_job(self, horno, job, salida, finish=False, exposure_override=None,skip_registration=False):
         job = job.strip().upper()
         key = (horno, job)
 
         if finish:
             if key in self.jobs:
-                job_data = self.jobs[key]
-                start_time = job_data["end_time"].addSecs(-job_data["exposure"])
-                remaining = QDateTime.currentDateTime().secsTo(job_data["end_time"])
-                send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL, tipo="registro")
+                if not skip_registration:
+                    job_data = self.jobs[key]
+                    start_time = job_data["end_time"].addSecs(-job_data["exposure"])
+                    remaining = QDateTime.currentDateTime().secsTo(job_data["end_time"])
+                    send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL, tipo="registro")
 
                 widget = self.jobs[key]["widget"]
                 self.jobs_layout.removeWidget(widget)
                 widget.deleteLater()
                 del self.jobs[key]
                 self.relayout_jobs()
-                return
+            return
 
         now = QDateTime.currentDateTime()
         salida_dt = QDateTime(QDate.currentDate(), salida)

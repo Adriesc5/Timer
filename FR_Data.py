@@ -170,7 +170,7 @@ class DataEntryScreen(QWidget):
         if self.unit == "MPU":
             exposure_hours = 12 if self.selected_kvbil == "<350KVBIL" else 18
 
-        self.add_job_callback(horno, job, salida, exposure_hours=exposure_hours)
+        self.add_job_callback(horno, job, salida, exposure_hours=exposure_hours,skip_registration=True)
         self.job_input.clear()
         self.time_input.setTime(QTime.currentTime())
         self.refresh_jobs_display()
@@ -191,7 +191,7 @@ class DataEntryScreen(QWidget):
                 tipo="registro", unidad=self.unit, actual=actual_time,
                 horas_expuestas=exposure_hours
             )
-        self.add_job_callback(horno, job, None, finish=True)
+        self.add_job_callback(horno, job, None, finish=True,skip_registration=True)
         self.refresh_jobs_display()
 
     def pause_job_direct(self, horno, job): 
