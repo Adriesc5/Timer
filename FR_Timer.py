@@ -193,7 +193,7 @@ class TimerDisplayScreen(QWidget):
                     color = "red"
                     if not data["alert_sent"]:
                         start_time = data["end_time"].addSecs(-data["exposure"])
-                        send_alert(horno, job, start_time.toPyDateTime(), remaining, WEBHOOK_URL, tipo="advertencia",unidad=self.unit)
+                        send_alert(horno, job, start_time.toPyDateTime(), WEBHOOK_URL, tipo="advertencia",unidad=self.unit)
                         data["alert_sent"] = True
                 elif percent <= 0.5:
                     color = "yellow"

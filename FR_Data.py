@@ -92,7 +92,7 @@ class DataEntryScreen(QWidget):
         scroll.setFixedHeight(240)
         layout.addWidget(scroll)
 
-        version_label = QLabel("Version 1.0.5.7")
+        version_label = QLabel("Version 1.1")
         version_label.setStyleSheet("font-size: 12px; color: gray;")
         version_row = QHBoxLayout()
         version_row.addWidget(version_label)
@@ -180,16 +180,14 @@ class DataEntryScreen(QWidget):
         data = jobs.get((horno, job))
         if data:
             start_time = data["end_time"].addSecs(-data["exposure"])
-            remaining = QDateTime.currentDateTime().secsTo(data["end_time"])
             actual_time = QDateTime.currentDateTime().toPyDateTime()
             start_time = data["end_time"].addSecs(-data["exposure"]).toPyDateTime()
             exposure_seconds = (actual_time - start_time).total_seconds()
             exposure_hours = round(exposure_seconds / 3600, 2)
-
             send_alert(
-                horno, job, start_time, exposure_seconds, WEBHOOK_URL,
-                tipo="registro", unidad=self.unit, actual=actual_time,
-                horas_expuestas=exposure_hours
+                horno, job, start_time, WEBHOOK_URL,
+                tipo="registro", unidad=self.unit,
+                actual=actual_time, horas_expuestas=exposure_hours
             )
         self.add_job_callback(horno, job, None, finish=True,skip_registration=True)
         self.refresh_jobs_display()

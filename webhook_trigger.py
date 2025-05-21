@@ -2,12 +2,11 @@
 import requests
 from datetime import datetime, timedelta
 
-def send_alert(horno, job, start_time, remaining, webhook_url, tipo="registro", unidad=None, actual=None, horas_expuestas=None):
+def send_alert(horno, job, start_time, webhook_url, tipo="registro", unidad=None, actual=None, horas_expuestas=None):
     payload = {
         "horno": str(horno),
         "job": str(job),
         "start_time": start_time.strftime("%Y-%m-%d %H:%M"),
-        "remaining": int(float(remaining)),  # ✅ convertimos a INT
         "tipo": str(tipo),
         "unidad": str(unidad),
         "actual": actual.strftime("%Y-%m-%d %H:%M") if actual else "",
