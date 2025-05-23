@@ -9,7 +9,8 @@ a = Analysis(
     datas=[
         ('TMC.png', '.'),
         ('VTC.png', '.'),
-        ('ETLogo.ico', '.')
+        ('ETLogo.ico', '.'),
+        ('.env', '.'),
     ],
     hiddenimports=[],
     hookspath=[],
