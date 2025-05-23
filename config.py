@@ -9,7 +9,8 @@ VALID_C = {
     "Tanking": ("Tan123!", "E2X"),
     "Meny": ("Bleach89", "E2X"),
     "Beto": ("Betorocks", "E2X"),
-    "LMV": ("Adri57", "MPU"),
+    "2": ("2", "MPU"),
     "JavierR": ("", ""),
-    "1": ("1", "E2X")
+    "1": ("1", "E2X"),
+    "TanMP": ("TanMP1", "MPU"),
 }
