@@ -194,4 +194,4 @@ class DataEntryScreen(QWidget):
 
     def pause_job_direct(self, horno, job): 
         self.add_job_callback(horno, job, None, pause=True)
-        QTimer.singleShot(200, self.refresh_jobs_display())
+        QTimer.singleShot(200, self.refresh_jobs_display)

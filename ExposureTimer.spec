@@ -1,4 +1,3 @@
-
 # ExposureTimer.spec
 block_cipher = None
 
@@ -10,9 +9,9 @@ a = Analysis(
         ('TMC.png', '.'),
         ('VTC.png', '.'),
         ('ETLogo.ico', '.'),
-        ('.env', '.'),
+        ('.env', '.'),  # Incluye el .env
     ],
-    hiddenimports=[],
+    hiddenimports=['PyQt6.QtWidgets', 'PyQt6.QtCore', 'PyQt6.QtGui'],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
@@ -20,7 +19,9 @@ a = Analysis(
     win_private_assemblies=False,
     cipher=block_cipher,
 )
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
 exe = EXE(
     pyz,
     a.scripts,
@@ -32,9 +33,10 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,  # <--- OCULTA LA CONSOLA
-    icon='ETLogo.ico',  
+    console=False,  # Oculta la consola (ideal para apps GUI)
+    icon='ETLogo.ico',
 )
+
 coll = COLLECT(
     exe,
     a.binaries,

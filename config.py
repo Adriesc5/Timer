@@ -1,7 +1,15 @@
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+import sys
 
-load_dotenv()  
+# Detecta si está empaquetado como .exe
+if getattr(sys, 'frozen', False):
+    basedir = sys._MEIPASS
+else:
+    basedir = os.path.dirname(os.path.abspath(__file__))
+
+dotenv_path = os.path.join(basedir, '.env')
+load_dotenv(dotenv_path)
 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
